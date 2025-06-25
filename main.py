@@ -9,7 +9,7 @@ from telegram.ext import (
 
 # Load environment variables
 BOT_TOKEN = os.getenv("8087642909:AAG_h4df6P-ZNPeIixgPqp149EA8tKFgP-E")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
+CHANNEL_ID = os.getenv("-1002875456801")
 
 if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("Please set BOT_TOKEN and CHANNEL_ID environment variables")
