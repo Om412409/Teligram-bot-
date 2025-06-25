@@ -1,4 +1,5 @@
 import os
+import sys
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -7,14 +8,43 @@ from telegram.ext import (
     ContextTypes,
 )
 
-# Load environment variables
-BOT_TOKEN = os.getenv("8087642909:AAG_h4df6P-ZNPeIixgPqp149EA8tKFgP-E")
-CHANNEL_ID = os.getenv("-1002875456801")
+# Enhanced environment variable loading with debugging
+print("\n" + "="*40)
+print("STARTING BOT - ENVIRONMENT CHECK")
+print("="*40 + "\n")
+
+# Debug: Print all available environment variables
+print("Available environment variables:")
+for key, value in os.environ.items():
+    if any(k in key.lower() for k in ['bot', 'channel', 'token']):
+        print(f"{key}: {'*' * len(value) if 'token' in key.lower() else value}")
+
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+CHANNEL_ID = os.environ.get('CHANNEL_ID')
+
+print("\n" + "="*40)
+print(f"BOT_TOKEN: {'SET' if BOT_TOKEN else 'NOT SET'}")
+print(f"CHANNEL_ID: {CHANNEL_ID if CHANNEL_ID else 'NOT SET'}")
+print("="*40 + "\n")
 
 if not BOT_TOKEN or not CHANNEL_ID:
-    raise ValueError("Please set BOT_TOKEN and CHANNEL_ID environment variables")
+    error_msg = """
+    ERROR: Missing required environment variables!
+    Please ensure these are set in Render:
+    1. BOT_TOKEN - Your Telegram bot token from @BotFather
+    2. CHANNEL_ID - Your channel ID (including -100 prefix)
+    
+    Current values:
+    BOT_TOKEN: {}
+    CHANNEL_ID: {}
+    """.format(
+        "SET" if BOT_TOKEN else "MISSING",
+        "SET" if CHANNEL_ID else "MISSING"
+    )
+    print(error_msg)
+    sys.exit(1)
 
-# Sample files data structure (you can modify this)
+# Sample files data structure
 CATEGORIES = {
     "study": {
         "name": "📁 Study Materials",
@@ -40,7 +70,7 @@ CATEGORIES = {
 }
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with the inline keyboard when the command /start is issued."""
+    """Send menu with categories when /start is issued."""
     keyboard = [
         [InlineKeyboardButton(cat["name"], callback_data=cat_id)]
         for cat_id, cat in CATEGORIES.items()
@@ -54,7 +84,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     
-    # Check if the callback is for a category
     if query.data in CATEGORIES:
         category = CATEGORIES[query.data]
         keyboard = [
@@ -68,7 +97,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             text=f"Category: {category['name']}\nSelect a file:",
             reply_markup=reply_markup
         )
-    # Check if the callback is for a file
     elif query.data.startswith("file_"):
         _, category_id, file_id = query.data.split("_", 2)
         file_data = CATEGORIES[category_id]["files"][file_id]
@@ -79,10 +107,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 from_chat_id=int(CHANNEL_ID),
                 message_id=file_data["message_id"]
             )
+            print(f"Sent file {file_id} to user {query.from_user.id}")
         except Exception as e:
+            error_msg = f"Failed to send file: {str(e)}"
+            print(error_msg)
             await query.edit_message_text("❌ Failed to send file. Please try again later.")
-            print(f"Error sending file: {e}")
-    # Handle back button
     elif query.data == "back":
         keyboard = [
             [InlineKeyboardButton(cat["name"], callback_data=cat_id)]
@@ -96,13 +125,21 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main() -> None:
     """Start the bot."""
-    application = Application.builder().token(BOT_TOKEN).build()
+    print("\n" + "="*40)
+    print("INITIALIZING BOT APPLICATION")
+    print("="*40 + "\n")
     
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button))
-    
-    print("Bot is running...")
-    application.run_polling()
+    try:
+        application = Application.builder().token(BOT_TOKEN).build()
+        
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CallbackQueryHandler(button))
+        
+        print("Bot is running...")
+        application.run_polling()
+    except Exception as e:
+        print(f"FATAL ERROR: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
