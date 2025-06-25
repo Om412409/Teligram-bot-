@@ -8,7 +8,7 @@ from telegram.ext import (
 )
 
 # Load environment variables
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("8087642909:AAG_h4df6P-ZNPeIixgPqp149EA8tKFgP-E")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 if not BOT_TOKEN or not CHANNEL_ID:
