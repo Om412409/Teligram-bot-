@@ -33,14 +33,7 @@ if not BOT_TOKEN or not CHANNEL_ID:
     Please ensure these are set in Render:
     1. BOT_TOKEN - Your Telegram bot token from @BotFather
     2. CHANNEL_ID - Your channel ID (including -100 prefix)
-    
-    Current values:
-    BOT_TOKEN: {}
-    CHANNEL_ID: {}
-    """.format(
-        "SET" if BOT_TOKEN else "MISSING",
-        "SET" if CHANNEL_ID else "MISSING"
-    )
+    """
     print(error_msg)
     sys.exit(1)
 
